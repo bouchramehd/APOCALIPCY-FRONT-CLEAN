@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base { 
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 216 34% 17%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen;
+  }
+}
+
+@layer components {
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-accent p-4;
+  }
+
+  .auth-card {
+    @apply w-full max-w-md p-8 bg-card rounded-lg shadow-2xl border border-border/50 backdrop-blur-sm;
+  }
+
+  .auth-title {
+    @apply text-4xl font-bold text-primary text-center mb-2;
+  }
+
+  .auth-subtitle {
+    @apply text-muted-foreground text-center mb-8;
+  }
+
+  .auth-form {
+    @apply space-y-6;
+  }
+
+  .auth-input {
+    @apply w-full bg-accent/50 border-border/50 rounded-md p-3 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50 focus:border-primary/50;
+  }
+
+  .auth-button {
+    @apply w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 rounded-md font-medium transition-colors;
+  }
+}
