@@ -132,17 +132,27 @@ export default function Login() {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-        navigate('/upload'); // 🔁 redirect after login
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Login failed.');
+  e.preventDefault();
+
+  try {
+    const res = await axios.post('/api/auth/login', { email, password });
+    console.log('Login response:', res.data);
+
+    if (res.data.message === 'Login successful') {
+      // Optional: store user data
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      console.log('Redirecting to /upload...');
+      navigate('/upload');
+    } else {
+      alert('Login failed: unexpected response.');
     }
-  };
+  } catch (error: any) {
+    console.error('Login error:', error);
+    alert(error.response?.data?.message || 'Login failed.');
+  }
+};
+
+
 
   return (
     <Container>
