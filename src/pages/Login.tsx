@@ -1,106 +1,182 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import axios from 'axios';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+
+const words = [
+  'Summarize PDFs instantly',
+  'AI-powered document tools',
+  'Upload your reports',
+  'Generate concise overviews',
+  'Actionable document summaries',
+  'Unlock hidden insights',
+  'Smart knowledge extraction',
+  'Organize with intelligence',
+  'Briefs at your fingertips',
+  'The Future of Document Handling',
+];
 
 const Container = styled.div`
-  min-height: 100vh;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #f3f4f6, #dce3dc);
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom right, #4f46e5, #7c3aed);
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+`;
+
+const Circle = styled.div`
+  position: absolute;
+  border-radius: 9999px;
+  background-color: #d0dad4;
+  opacity: ${(props: { opacity: number; size: number }) => props.opacity};
+  width: ${(props: { size: number }) => props.size}px;
+  height: ${(props: { size: number }) => props.size}px;
+  left: calc(50% - ${(props: { size: number }) => props.size / 2}px);
+  top: calc(50% - ${(props: { size: number }) => props.size / 2}px);
+  animation: ripple 15s infinite ease-in-out;
+
+  @keyframes ripple {
+    0%, 100% {
+      transform: scale(0.8);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+  }
 `;
 
 const Card = styled.div`
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3rem;
+  border-radius: 25px;
   width: 100%;
-  max-width: 28rem;
-  padding: 2.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 1rem;
-  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1),
-              0 0 0 1px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e9f0;
-  backdrop-filter: blur(10px);
+  max-width: 420px;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(18px);
+  z-index: 10;
 `;
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+const Title = styled.h1`
+  text-align: center;
+  color: #2e3d35;
+  font-size: 2rem;
+  font-weight: 700;
+`;
+
+const Subtitle = styled.p`
+  text-align: center;
+  color: #4e5e55;
+  margin-bottom: 2rem;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #cad3cb;
+  background-color: #edf1ee;
+  color: #2e3d35;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  outline: none;
+
+  &:focus {
+    border-color: #8bb89f;
+  }
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #6ca48d;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+
+  &:hover {
+    opacity: 0.95;
+  }
+`;
+
+const Footer = styled.p`
+  text-align: center;
+  color: #4e5e55;
+  font-size: 0.875rem;
+`;
+
+const CyclingWord = styled.div`
+  position: absolute;
+  top: 10%;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2e3d35;
+  z-index: 5;
 `;
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [index, setIndex] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/login', {
-        email,
-        password,
-      });
-
-      // Save token if provided
+      const res = await axios.post('/api/auth/login', { email, password });
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
+        navigate('/upload'); // 🔁 redirect after login
       }
-
-      alert('Login successful!');
-      navigate('/'); // Redirect to homepage or dashboard
     } catch (error: any) {
-      console.error(error.response?.data || error.message);
-      alert(error.response?.data?.message || 'Login failed. Check your credentials.');
+      alert(error.response?.data?.message || 'Login failed.');
     }
   };
 
   return (
     <Container>
+      <Circle size={1000} opacity={0.08} />
+      <Circle size={800} opacity={0.1} />
+      <Circle size={600} opacity={0.15} />
+      <Circle size={400} opacity={0.2} />
+      <Circle size={200} opacity={0.25} />
+
+      <CyclingWord>{words[index]}</CyclingWord>
+
       <Card>
-        <div className="text-center space-y-4 mb-8">
-          <h1 className="text-4xl font-extrabold text-indigo-700">Welcome Back</h1>
-          <p className="text-base text-gray-600">Please enter your credentials</p>
-          <p className="text-sm text-gray-500">
-            New here?{' '}
-            <Link
-              to="/signup"
-              className="font-semibold text-indigo-600 hover:text-purple-600 transition-colors duration-200"
-            >
-              Create Account →
-            </Link>
-          </p>
-        </div>
-        <Form onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Password</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <Button
-            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg
-                       transform transition-all duration-200 hover:opacity-90 hover:scale-[1.01] focus:ring-4 ring-purple-200"
-            type="submit"
-          >
-            Sign In
-          </Button>
-        </Form>
+        <Title>Welcome to LeafDocs 📄</Title>
+        <Subtitle>Log in to manage and summarize your PDFs</Subtitle>
+        <form onSubmit={handleSubmit}>
+          <Input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button type="submit">Sign In</Button>
+        </form>
+        <Footer>
+          Don’t have an account? <Link to="/signup">Create one →</Link>
+        </Footer>
       </Card>
     </Container>
   );
