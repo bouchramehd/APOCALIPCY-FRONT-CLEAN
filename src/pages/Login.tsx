@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import axios from 'axios';
 
+const API_URL = 'http://localhost:3000'; // Backend sur port 3000
+
 const words = [
   'Summarize PDFs instantly',
   'AI-powered document tools',
@@ -16,6 +18,7 @@ const words = [
   'The Future of Document Handling',
 ];
 
+// 💄 Styled Components
 const Container = styled.div`
   height: 100vh;
   background: linear-gradient(to bottom right, #f3f4f6, #dce3dc);
@@ -132,27 +135,34 @@ export default function Login() {
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await axios.post('/api/auth/login', { email, password });
-    console.log('Login response:', res.data);
+    try {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
+        email,
+        password,
+      });
 
-    if (res.data.message === 'Login successful') {
-      // Optional: store user data
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      console.log('Redirecting to /upload...');
-      navigate('/upload');
-    } else {
-      alert('Login failed: unexpected response.');
+      console.log('Login response:', res.data);
+
+      if (res.data.message === 'Login successful') {
+        // Sauvegarder les données en local (token + user)
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+        }
+
+        // Redirection vers la page d'upload
+        console.log('Redirecting to /upload...');
+        navigate('/upload');
+      } else {
+        alert('Login failed: unexpected response.');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      alert(error.response?.data?.message || 'Login failed.');
     }
-  } catch (error: any) {
-    console.error('Login error:', error);
-    alert(error.response?.data?.message || 'Login failed.');
-  }
-};
-
-
+  };
 
   return (
     <Container>

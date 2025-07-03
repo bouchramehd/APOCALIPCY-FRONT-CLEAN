@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { FiUploadCloud } from 'react-icons/fi';
 import { uploadPDF } from '../services/api';
-
+ 
 const words = [
   'Summarize PDFs instantly',
   'AI-powered document tools',
@@ -10,7 +10,23 @@ const words = [
   'Unlock hidden insights',
   'Smart knowledge extraction',
 ];
-
+ 
+function parseSummary(summaryText: string) {
+  const summaryMatch = summaryText.match(/RÉSUMÉ:\s*(.+?)\n+(POINTS CLÉS:|$)/s);
+  const keyPointsMatch = summaryText.match(/POINTS CLÉS:\s*([\s\S]+?)\n+(ACTIONS SUGGÉRÉES:|$)/);
+  const actionsMatch = summaryText.match(/ACTIONS SUGGÉRÉES:\s*([\s\S]+)/);
+ 
+  const summary = summaryMatch ? summaryMatch[1].trim() : summaryText.trim();
+  const keyPoints = keyPointsMatch
+    ? keyPointsMatch[1].split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-/, '').trim())
+    : [];
+  const suggestedActions = actionsMatch
+    ? actionsMatch[1].split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-/, '').trim())
+    : [];
+ 
+  return { summary, keyPoints, suggestedActions };
+}
+ 
 const Container = styled.div`
   height: 100vh;
   background: linear-gradient(to bottom right, #f3f4f6, #dce3dc);
@@ -21,7 +37,7 @@ const Container = styled.div`
   overflow: hidden;
   padding: 2rem;
 `;
-
+ 
 const Circle = styled.div<{ size: number; opacity: number }>`
   position: absolute;
   border-radius: 9999px;
@@ -32,7 +48,7 @@ const Circle = styled.div<{ size: number; opacity: number }>`
   left: calc(50% - ${(props) => props.size / 2}px);
   top: calc(50% - ${(props) => props.size / 2}px);
   animation: ripple 15s infinite ease-in-out;
-
+ 
   @keyframes ripple {
     0%, 100% {
       transform: scale(0.8);
@@ -42,7 +58,7 @@ const Circle = styled.div<{ size: number; opacity: number }>`
     }
   }
 `;
-
+ 
 const CyclingWord = styled.div`
   position: absolute;
   top: 10%;
@@ -51,7 +67,7 @@ const CyclingWord = styled.div`
   color: #2e3d35;
   z-index: 5;
 `;
-
+ 
 const Card = styled.div`
   background: rgba(255, 255, 255, 0.2);
   padding: 3rem;
@@ -62,7 +78,7 @@ const Card = styled.div`
   backdrop-filter: blur(18px);
   z-index: 10;
 `;
-
+ 
 const Title = styled.h1`
   text-align: center;
   color: #2e3d35;
@@ -70,18 +86,18 @@ const Title = styled.h1`
   font-weight: 700;
   margin-bottom: 1rem;
 `;
-
+ 
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
   color: #2e3d35;
   font-weight: 500;
 `;
-
+ 
 const HiddenInput = styled.input`
   display: none;
 `;
-
+ 
 const FileButton = styled.label`
   width: 100%;
   padding: 0.75rem;
@@ -98,14 +114,14 @@ const FileButton = styled.label`
   gap: 0.5rem;
   margin-bottom: 1rem;
   transition: transform 0.2s, box-shadow 0.2s;
-
+ 
   &:hover {
     opacity: 0.95;
     transform: scale(1.03);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 `;
-
+ 
 const Button = styled.button`
   width: 100%;
   padding: 0.75rem;
@@ -122,25 +138,25 @@ const Button = styled.button`
   align-items: center;
   gap: 0.5rem;
   transition: transform 0.2s, box-shadow 0.2s;
-
+ 
   &:hover {
     opacity: 0.95;
     transform: scale(1.03);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
-
+ 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
 `;
-
+ 
 const ErrorText = styled.p`
   color: red;
   text-align: center;
   margin-top: 0.5rem;
 `;
-
+ 
 const SummarySection = styled.div`
   margin-top: 2rem;
   background: #f6f9f7;
@@ -150,42 +166,46 @@ const SummarySection = styled.div`
   max-width: 600px;
   color: #2e3d35;
 `;
-
+ 
 type SummaryResult = {
   summary: string;
   keyPoints?: string[];
   suggestedActions?: string[];
 };
-
+ 
 const FileUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState<SummaryResult | null>(null);
   const [index, setIndex] = useState(0);
-
+ 
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % words.length);
     }, 2500);
     return () => clearInterval(interval);
   }, []);
-
+ 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFile(e.target.files?.[0] || null);
     setError('');
   };
-
+ 
   const handleUpload = async () => {
     if (!file) {
       setError('Veuillez sélectionner un fichier.');
       return;
     }
-
+ 
     try {
       setLoading(true);
       const result = await uploadPDF(file);
-      setSummary(result);
+      setSummary({
+        summary: result.document.summary,
+        keyPoints: result.document.keyPoints,
+        suggestedActions: result.document.suggestedActions,
+      });
       setError('');
     } catch (err) {
       console.error(err);
@@ -194,7 +214,7 @@ const FileUpload: React.FC = () => {
       setLoading(false);
     }
   };
-
+ 
   return (
     <Container>
       <Circle size={1000} opacity={0.08} />
@@ -202,9 +222,9 @@ const FileUpload: React.FC = () => {
       <Circle size={600} opacity={0.15} />
       <Circle size={400} opacity={0.2} />
       <Circle size={200} opacity={0.25} />
-
+ 
       <CyclingWord>{words[index]}</CyclingWord>
-
+ 
       <Card>
         <Title>Upload & Summarize PDF</Title>
         <Label htmlFor="file-upload">Choose a PDF file:</Label>
@@ -218,19 +238,19 @@ const FileUpload: React.FC = () => {
           <FiUploadCloud size={20} />
           {file ? file.name : 'Select a PDF file'}
         </FileButton>
-
+ 
         <Button onClick={handleUpload} disabled={loading}>
           {loading ? 'Uploading...' : 'Upload & Summarize'}
         </Button>
-
+ 
         {error && <ErrorText>{error}</ErrorText>}
       </Card>
-
+ 
       {summary && (
         <SummarySection>
           <h3>📄 Summary</h3>
           <p>{summary.summary}</p>
-
+ 
           {summary.keyPoints && summary.keyPoints.length > 0 && (
             <>
               <h4>🔑 Key Points</h4>
@@ -241,7 +261,7 @@ const FileUpload: React.FC = () => {
               </ul>
             </>
           )}
-
+ 
           {summary.suggestedActions && summary.suggestedActions.length > 0 && (
             <>
               <h4>✅ Suggested Actions</h4>
@@ -257,5 +277,5 @@ const FileUpload: React.FC = () => {
     </Container>
   );
 };
-
+ 
 export default FileUpload;
