@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import axios from 'axios';
+import { login } from '../services/api';
 
 const words = [
   'Summarize PDFs instantly',
@@ -135,12 +135,12 @@ export default function Login() {
   e.preventDefault();
 
   try {
-    const res = await axios.post('/api/auth/login', { email, password });
-    console.log('Login response:', res.data);
+    const res = await login(email, password);
+    console.log('Login response:', res);
 
-    if (res.data.message === 'Login successful') {
+    if (res.message === 'Login successful') {
       // Optional: store user data
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('user', JSON.stringify(res.user));
       console.log('Redirecting to /upload...');
       navigate('/upload');
     } else {
@@ -151,8 +151,6 @@ export default function Login() {
     alert(error.response?.data?.message || 'Login failed.');
   }
 };
-
-
 
   return (
     <Container>
@@ -185,7 +183,7 @@ export default function Login() {
           <Button type="submit">Sign In</Button>
         </form>
         <Footer>
-          Don’t have an account? <Link to="/signup">Create one →</Link>
+          Don't have an account? <Link to="/signup">Create one →</Link>
         </Footer>
       </Card>
     </Container>

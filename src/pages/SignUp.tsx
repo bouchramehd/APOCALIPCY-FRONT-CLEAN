@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import axios from 'axios';
+import { register } from '../services/api';
 
 const words = [
   'Start summarizing PDFs',
@@ -131,11 +131,7 @@ const SignUp = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/register', {
-        username,
-        email,
-        password,
-      });
+      const res = await register(username, email, password);
       alert('Registered successfully!');
       navigate('/login');
     } catch (error: any) {
